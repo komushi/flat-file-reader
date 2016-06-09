@@ -100,6 +100,15 @@ public class FlatFileReader{
 
                 ConcurrentHashMap<String,String[]> line_map = new ConcurrentHashMap<String,String[]>(1000);//init size is 1000
                 Thread t =new Thread(new ProgramOutputConsumer(listen_port,line_map, ss));
+
+//                Thread.UncaughtExceptionHandler h = new Thread.UncaughtExceptionHandler() {
+//                    public void uncaughtException(Thread t, Throwable e) {
+//                        System.out.println("Uncaught exception: " + e);
+//                    }
+//                };
+//
+//                t.setUncaughtExceptionHandler(h);
+
                 t.start();
 
                 while((line = this.getLine(csv_stream))!=null){
@@ -110,14 +119,20 @@ public class FlatFileReader{
 
                         line_map.put(key,new String[]{value, start_time});
                         System.out.println("Save to map with key: "+line.split(",")[0]);
-                        System.out.println("Post to URL with: " + line);
+
                         Unirest.post(url).body(line).asString();
-                        break;
-                    }catch(UnirestException e){
+                        System.out.println("Post to URL with: " + line);
+
+//                        break;
+                    } catch(UnirestException e){
+                        e.printStackTrace();
+                    } catch(Exception e){
                         e.printStackTrace();
                     }
                 }
-                t.join();
+                t.join(1000);
+                t.interrupt();
+
                 System.out.println("All lines has been read, exit");
                 System.exit(1);
 
@@ -130,6 +145,7 @@ public class FlatFileReader{
         }
     }
 
+    private Integer lineNumber = 0;
     private String getLine(FileInputStream csv_stream){
         String line="";
         try{
@@ -137,7 +153,8 @@ public class FlatFileReader{
             while(b!=-1){
                 line+=(char)b;
                 if((char)b == '\n'){
-                    System.out.println(line);
+                    lineNumber++;
+                    System.out.println("read line " + lineNumber.toString() + ":" + line);
                     return line;
                 }
                 b=csv_stream.read();

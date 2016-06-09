@@ -41,3 +41,21 @@ Or
 java -jar target/FlatFileReader-0.1.0-jar-with-dependencies.jar --file=./data/sample_data.csv --url http://localhost:9000 --mode=interactive
 
 ```
+
+```
+java -jar target/FlatFileReader-0.1.0-jar-with-dependencies.jar --file=./data/sample_data.csv --url http://localhost:9000 --mode=measure-delay --listen-port=9000
+
+```
+
+```
+#!SpringXD DSL
+stream create --name http2tcp --definition "http --port=9000| tcp --port=9090 " --deploy
+stream create --name tap2log --definition "tap:stream:http2tcp > log" --deploy
+
+```
+
+
+xd:>stream create nullStream --definition "http | null" --deploy
+Created and deployed new stream 'nullStream'
+xd:>stream create tap1 --definition "tap:stream:nullStream > counter" --deploy
+Created and deployed new stream 'tap1'
