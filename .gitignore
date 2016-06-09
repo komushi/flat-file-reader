@@ -1,0 +1,10 @@
+*.pid
+*.dat
+*.log
+*.classpath
+*.project
+*.iml
+/.gradle
+/.idea
+/target
+/build
