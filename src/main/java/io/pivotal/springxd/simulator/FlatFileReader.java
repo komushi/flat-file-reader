@@ -23,7 +23,7 @@ public class FlatFileReader{
         parser.description("Read the Sample Taxi CSV file and output line by line to specific HTTP(s) endpoint");
         parser.addArgument("--file").help("Full path to the CSV file").required(true);
         parser.addArgument("--url").help("Full URL to output").required(true);
-        parser.addArgument("--mode").help("Which output mode to use: 'lines-per-second' (use with --lines-per-second option), 'interactive' (one line for when user hit enter key), 'measure-delay' (Use with --line-trigger-file AND --output-pipe-file)");
+        parser.addArgument("--mode").help("Which output mode to use: 'bulk' (use with --lines-per-second option), 'interactive' (one line for when user hit enter key), 'measure-delay' (Use with --line-trigger-file AND --output-pipe-file)");
         parser.addArgument("--lines-per-second").type(Integer.class).help("Use with --mode, how many lines sent per seconds to the url");
         parser.addArgument("--listen-port").type(Integer.class).help("Use with --mode=measure-delay, what is the TCP sink output port in SpringXD");
         //parser.addArgument("--line-trigger-file").help("Use with --mode=measure-delay, full path to the file consist trigger line number, this program will measure how long it takes for the output to generate");
@@ -66,6 +66,7 @@ public class FlatFileReader{
         String url = argNs.getString("url");
         String mode = argNs.getString("mode");
         Integer listen_port = argNs.getInt("listen_port");
+        Integer lines_per_second = argNs.getInt("lines_per_second");
 
         //Begin read file:
         String line=null;
@@ -89,25 +90,38 @@ public class FlatFileReader{
                     System.exit(1);
                 }
                 break;
+            case "bulk":
+                if(lines_per_second==null){
+                    throw new Exception("Please specify --lines-per-second parameter");
+                }
+
+                while((line = this.getLine(csv_stream))!=null){
+                    try{
+                        Thread.sleep(200);
+                        Unirest.post(url).body(line).asString();
+                        System.out.println("Post to URL with: " + line);
+
+                    } catch(UnirestException e){
+                        e.printStackTrace();
+                    } catch(Exception e){
+                        e.printStackTrace();
+                    }
+                }
+
+                System.out.println("All lines has been read, exit");
+                System.exit(1);
+                break;
             case "measure-delay":
 
 
                 if(listen_port==null){
-                    throw new Exception("Please specific --listen-port parameter");
+                    throw new Exception("Please specify --listen-port parameter");
                 }
 
                 ServerSocket ss = new ServerSocket(listen_port);
 
                 ConcurrentHashMap<String,String[]> line_map = new ConcurrentHashMap<String,String[]>(1000);//init size is 1000
                 Thread t =new Thread(new ProgramOutputConsumer(listen_port,line_map, ss));
-
-//                Thread.UncaughtExceptionHandler h = new Thread.UncaughtExceptionHandler() {
-//                    public void uncaughtException(Thread t, Throwable e) {
-//                        System.out.println("Uncaught exception: " + e);
-//                    }
-//                };
-//
-//                t.setUncaughtExceptionHandler(h);
 
                 t.start();
 
@@ -123,21 +137,17 @@ public class FlatFileReader{
                         Unirest.post(url).body(line).asString();
                         System.out.println("Post to URL with: " + line);
 
-//                        break;
                     } catch(UnirestException e){
                         e.printStackTrace();
                     } catch(Exception e){
                         e.printStackTrace();
                     }
                 }
-                t.join(1000);
+                t.join(2000);
                 t.interrupt();
 
                 System.out.println("All lines has been read, exit");
                 System.exit(1);
-
-
-
 
 
             default:

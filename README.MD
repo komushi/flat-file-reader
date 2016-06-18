@@ -49,13 +49,23 @@ java -jar target/FlatFileReader-0.1.0-jar-with-dependencies.jar --file=./data/sa
 
 ```
 #!SpringXD DSL
-stream create --name http2tcp --definition "http --port=9000| tcp --port=9090 " --deploy
-stream create --name tap2log --definition "tap:stream:http2tcp > log" --deploy
+stream create --name http2log --definition "http --port=9000 | log " --deploy
+stream create --name tap2tcp --definition "tap:stream:http2log > tcp --port=9090" --deploy
 
 ```
 
+dataflow shell
+```
+stream create --name http2log --definition "http --server.port=9000 | log " --deploy
+stream create --definition ":http2log.http > tcp --host=localhost --port=9090" --name tap2tcp --deploy
+```
 
-xd:>stream create nullStream --definition "http | null" --deploy
-Created and deployed new stream 'nullStream'
-xd:>stream create tap1 --definition "tap:stream:nullStream > counter" --deploy
-Created and deployed new stream 'tap1'
+## Run with Spring Cloud Dataflow, Stream and Gemfire
+dataflow shell
+```
+app register --name flat2tuple --type processor --uri file:///Users/lei_xu/Desktop/Flat2TupleTransformer-0.0.1-SNAPSHOT.jar
+
+stream create http2gem --definition "http --server.port=9000 | flat2tuple --outputType=application/json | gemfire --regionName=RegionRaw --json=true --keyExpression=payload.getField('hashCode')" --deploy
+
+http post --target http://localhost:9000  --data "468244D1361B8A3EB8D206CC394BC9E9,BB899DFEA9CC964B50C540A1D685CCFB,2013-01-01 00:00:00,2013-01-01 00:04:00,240,1.71,-73.855383,40.779728,-73.967758,40.760326,CSH,6.50,0.50,0.50,0.00,0.00,7.50"
+```
