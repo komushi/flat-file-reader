@@ -24,7 +24,8 @@ public class FlatFileReader{
         parser.addArgument("--file").help("Full path to the CSV file").required(true);
         parser.addArgument("--url").help("Full URL to output").required(true);
         parser.addArgument("--mode").help("Which output mode to use: 'bulk' (use with --lines-per-second option), 'interactive' (one line for when user hit enter key), 'measure-delay' (Use with --line-trigger-file AND --output-pipe-file)");
-        parser.addArgument("--lines-per-second").type(Integer.class).help("Use with --mode, how many lines sent per seconds to the url");
+        parser.addArgument("--interval").type(Integer.class).help("Use with --mode=bulk, how many milliseconds to send a line to the url");
+//        parser.addArgument("--lines-per-second").type(Integer.class).help("Use with --mode=bulk, how many lines sent per seconds to the url");
         parser.addArgument("--listen-port").type(Integer.class).help("Use with --mode=measure-delay, what is the TCP sink output port in SpringXD");
         //parser.addArgument("--line-trigger-file").help("Use with --mode=measure-delay, full path to the file consist trigger line number, this program will measure how long it takes for the output to generate");
         //parser.addArgument("--output-pipe-file").help("Use with --mode=measure-delay, read output from this Linux Pipe file");
@@ -66,7 +67,8 @@ public class FlatFileReader{
         String url = argNs.getString("url");
         String mode = argNs.getString("mode");
         Integer listen_port = argNs.getInt("listen_port");
-        Integer lines_per_second = argNs.getInt("lines_per_second");
+//        Integer lines_per_second = argNs.getInt("lines_per_second");
+        Integer interval = argNs.getInt("interval");
 
         //Begin read file:
         String line=null;
@@ -91,13 +93,17 @@ public class FlatFileReader{
                 }
                 break;
             case "bulk":
-                if(lines_per_second==null){
-                    throw new Exception("Please specify --lines-per-second parameter");
+//                if(lines_per_second==null){
+//                    throw new Exception("Please specify --lines-per-second parameter");
+//                }
+
+                if(interval==null){
+                    interval = 1000;
                 }
 
                 while((line = this.getLine(csv_stream))!=null){
                     try{
-                        Thread.sleep(200);
+                        Thread.sleep(interval);
                         Unirest.post(url).body(line).asString();
                         System.out.println("Post to URL with: " + line);
 

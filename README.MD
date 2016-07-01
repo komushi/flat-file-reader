@@ -14,7 +14,7 @@ The simulator is a program to read from .csv file and then post to HTTP.
 ```
 git clone https://github.com/komushi/flat-file-reader.git
 cd flat-file-reader
-mvn package
+mvn clean package
 ```
 
 ### Run FlatFileReader to show help
@@ -26,7 +26,7 @@ mvn exec:java -Dexec.mainClass="io.pivotal.springxd.simulator.FlatFileReader"
 Or
 
 ```
-java -jar target/FlatFileReader-0.1.0-jar-with-dependencies.jar
+java -jar target/FlatFileReader-0.1.0-jar-with-dependencies.jar --file=./data/sample_data.csv --url http://localhost:9000 --mode=bulk --interval=200
 ```
 
 ### Run FlatFileReader with Spring XD #
