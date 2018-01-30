@@ -15,6 +15,18 @@ The simulator is a program to read from .csv file and then post to HTTP.
 git clone https://github.com/komushi/flat-file-reader.git
 cd flat-file-reader
 mvn clean package
+docker build -t komushi/flat-file-reader -f ./Dockerfile .
+```
+
+for the scs.cloudnative.site destination
+```
+docker build -t komushi/flat-file-reader:scs -f ./Dockerfile.scs . 
+```
+
+### Run in docker
+
+```
+docker run komushi/flat-file-reader
 ```
 
 ### Run FlatFileReader to show help
@@ -26,7 +38,7 @@ mvn exec:java -Dexec.mainClass="io.pivotal.springxd.simulator.FlatFileReader"
 Or
 
 ```
-java -jar target/FlatFileReader-0.1.0-jar-with-dependencies.jar --file=./data/sample_data.csv --url http://localhost:9000 --mode=bulk --interval=200
+java -jar target/flat-file-reader-0.1.0-jar-with-dependencies.jar --file=./data/sample_data.csv --url http://localhost:9000 --mode=bulk --interval=200
 ```
 
 ### Run FlatFileReader with Spring XD #
@@ -38,12 +50,12 @@ mvn exec:java -Dexec.mainClass="io.pivotal.springxd.simulator.FlatFileReader" -D
 Or
 
 ```
-java -jar target/FlatFileReader-0.1.0-jar-with-dependencies.jar --file=./data/sample_data.csv --url http://localhost:9000 --mode=interactive
+java -jar target/flat-file-reader-0.1.0-jar-with-dependencies.jar --file=./data/sample_data.csv --url http://localhost:9000 --mode=interactive
 
 ```
 
 ```
-java -jar target/FlatFileReader-0.1.0-jar-with-dependencies.jar --file=./data/sample_data.csv --url http://localhost:9000 --mode=measure-delay --listen-port=9000
+java -jar target/flat-file-reader-0.1.0-jar-with-dependencies.jar --file=./data/sample_data.csv --url http://localhost:9000 --mode=measure-delay --listen-port=9000
 
 ```
 
