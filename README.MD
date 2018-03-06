@@ -26,7 +26,7 @@ docker build -t komushi/flat-file-reader:scs -f ./Dockerfile.scs .
 ### Run in docker
 
 ```
-docker run komushi/flat-file-reader
+docker run komushi/flat-file-reader --url=http://docker.for.mac.localhost:8000
 ```
 
 ### Run FlatFileReader to show help
